@@ -35,5 +35,9 @@ Rewrite configuration in `config.lua.default` and rename it to `config.lua`. Con
 
 Upload files to NodeMCU. Restart and wave your hand in front of range sensor.
 
+## How it works
+
+Init script connect to wifi and checks if connection is established. Then creates TCP connection to lightsd server. After that distance measurement starts. When is measured distance in range (from 0 to MAXDIST + MAXRANGE) value is calculated 0 - 100 which represents brightness level. That is sent to lightsd server via jsonrpc. Before first value change, current light state is requested and saved (to preserve hue, saturation, warmth). If light is Off, next command is to turn the light On and after that brightness value changes. New brightness value can not be sent before confirmation packet from lightsd is received. While NodeMCU is communicating with lightsd server, distance measurement is on hold, this prevents sending too much requests to server and responses which could exhaust memory.
+
 ## License
 GNU GPLv3

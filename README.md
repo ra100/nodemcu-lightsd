@@ -41,5 +41,10 @@ Control LIFX light brightness with NodeMCU, hc-sr04 range sensor and lightsd ser
 ## How it works
 Init script connect to wifi and checks if connection is established. Then creates TCP connection to lightsd server. After that distance measurement starts. When is measured distance in range (from 0 to MAXDIST + MAXRANGE) value is calculated 0 - 100 which represents brightness level. That is sent to lightsd server via jsonrpc. Before first value change, current light state is requested and saved (to preserve hue, saturation, warmth). If light is Off, next command is to turn the light On and after that brightness value changes. New brightness value can not be sent before confirmation packet from lightsd is received. While NodeMCU is communicating with lightsd server, distance measurement is on hold, this prevents sending too much requests to server and responses which could exhaust memory.
 
+## TODO
+
+- [ ] light tags/groups support
+- [ ] hsbk support in jsonrpc
+
 ## License
 GNU GPLv3

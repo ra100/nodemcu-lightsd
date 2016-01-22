@@ -110,7 +110,7 @@ function jsonrpc.init(p, i, after)
   port = p
   after_call = after or function() end
   connect()
-  -- tmr.alarm(3, 60*1000, 1, function() jsonrpc.getLightState('*') end)
+  -- tmr.alarm(3, 3*60*1000, 1, function() jsonrpc.getLightState('*') end)
   return con
 end
 

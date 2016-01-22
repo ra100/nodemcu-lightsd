@@ -74,8 +74,8 @@ end
 local function onDisconnected()
   print('disconnected')
   connected = false
-  connecting = true
-  tmr.alarm(5, 100, 0, function() connect() end)
+  -- connecting = true
+  -- tmr.alarm(5, 3000, 0, function() connect() end)
 end
 
 local function onSent(c)
@@ -92,6 +92,7 @@ connect = function()
   if not connected then
     print('connecting')
     connecting = true
+    if (con ~= nil) then con:close() end
     con = net.createConnection(net.TCP, 0)
     con:on('connection', onConnected)
     con:on('reconnection', onReconnected)

@@ -15,38 +15,38 @@
 --    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 --
 
-local hcsr04 = {};
+local hcsr04 = {}
+local self = {}
 
 function hcsr04.init(pin_trig, pin_echo, average)
-	local self = {}
-	hcsr04.time_start = 0
-	hcsr04.time_end = 0
-	hcsr04.trig = pin_trig or 4
-	hcsr04.echo = pin_echo or 3
-	gpio.mode(hcsr04.trig, gpio.OUTPUT)
-	gpio.mode(hcsr04.echo, gpio.INT)
-	hcsr04.average = average or 3
+	self.time_start = 0
+	self.time_end = 0
+	self.trig = pin_trig or 4
+	self.echo = pin_echo or 3
+	gpio.mode(self.trig, gpio.OUTPUT)
+	gpio.mode(self.echo, gpio.INT)
+	self.average = average or 3
 end
 
 function hcsr04.echo_cb(level)
 	if level == 1 then
-		hcsr04.time_start = tmr.now()
-		gpio.trig(hcsr04.echo, "down")
+		self.time_start = tmr.now()
+		gpio.trig(self.echo, "down")
 	else
-		hcsr04.time_end = tmr.now()
+		self.time_end = tmr.now()
 	end
 end
 
 function hcsr04.measure()
-	gpio.trig(hcsr04.echo, "up", hcsr04.echo_cb)
-	gpio.write(hcsr04.trig, gpio.HIGH)
+	gpio.trig(self.echo, "up", hcsr04.echo_cb)
+	gpio.write(self.trig, gpio.HIGH)
 	tmr.delay(100)
-	gpio.write(hcsr04.trig, gpio.LOW)
+	gpio.write(self.trig, gpio.LOW)
 	tmr.delay(100000)
-	if (hcsr04.time_end - hcsr04.time_start) < 0 then
+	if (self.time_end - self.time_start) < 0 then
 		return -1
 	end
-	return (hcsr04.time_end - hcsr04.time_start) / 5800
+	return (self.time_end - self.time_start) / 5800
 end
 
 function hcsr04.measure_avg()
@@ -54,7 +54,7 @@ function hcsr04.measure_avg()
 		return -1 -- if the first sample is invalid, return -1
 	end
 	avg = 0
-	for cnt = 1, hcsr04.average do
+	for cnt = 1, self.average do
 		distance = hcsr04.measure()
 		if distance < 0 then
 			return -1 -- return -1 if any of the meas fails
@@ -62,7 +62,7 @@ function hcsr04.measure_avg()
 		avg = avg + distance
 		tmr.delay(30000)
 	end
-	return avg / hcsr04.average
+	return avg / self.average
 end
 
-return hscr04
+return hcsr04

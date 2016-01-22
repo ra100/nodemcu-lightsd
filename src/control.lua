@@ -1,5 +1,5 @@
-local jsonrpc = require 'jsonrpc'
-local hscr04 = require 'hcsr04'
+jsonrpc = require 'jsonrpc'
+local hcsr04 = require 'hcsr04'
 local val = 0
 
 function measure()
@@ -32,7 +32,7 @@ tmr.alarm(0, 1000, 1, function()
   if wifi.sta.status() == 5 then
     tmr.stop(0)
     print(wifi.sta.getip())
-    hcsr04 = hcsr04.init(TRIG, ECHO, AVG)
+    hcsr04.init(TRIG, ECHO, AVG)
     jsonrpc.init(
       PORT,
       SERVER,

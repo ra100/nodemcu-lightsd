@@ -40,4 +40,6 @@ wifi.sta.eventMonReg(wifi.STA_GOTIP, function()
     end)
 end)
 
+wifi.sta.eventMonReg(wifi.STA_IDLE, function() wifi.sta.connect() end)
+
 wifi.sta.eventMonStart()

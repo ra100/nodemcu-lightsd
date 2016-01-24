@@ -92,9 +92,9 @@ end
 
 connect = function()
   if (wifi.sta.status() ~= wifi.STA_GOTIP) then
-    print('WIFI connecting')
+    -- print('WIFI connecting')
     if (wifi.sta.status() ~= wifi.STA_CONNECTING) then
-      print('reconnecting WIFI')
+      -- print('reconnecting WIFI')
       wifi.sta.connect()
     end
     return false
@@ -121,7 +121,7 @@ function jsonrpc.init(p, i, after)
   after_call = after or function() end
   connect()
   wifi.sta.eventMonReg(wifi.STA_GOTIP, function() connect() end)
-  -- tmr.alarm(3, 3*60*1000, 1, function() jsonrpc.getLightState('*') end)
+  tmr.alarm(3, 3*60*1000, 1, function() jsonrpc.getLightState('*') end)
   return con
 end
 

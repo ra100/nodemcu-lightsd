@@ -4,7 +4,7 @@ Control LIFX light brightness with NodeMCU, hc-sr04 range sensor and lightsd ser
 ## Requirements
 - LIFX bulbs
 - NodeMCU module
-  - firmware 1.4.0 - float with modules: node,file,gpio,wifi,net,tmr,cjson - [http://nodemcu-build.com/](http://nodemcu-build.com/)
+  - firmware 1.5.1 - float with modules: node,file,gpio,wifi,net,tmr,cjson - [http://nodemcu-build.com/](http://nodemcu-build.com/)
 
 - HC-SR04 ultrasonic sensor
 - lightsd server - [https://github.com/lopter/lightsd](https://github.com/lopter/lightsd)

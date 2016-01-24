@@ -74,8 +74,10 @@ end
 local function onDisconnected()
   print('disconnected')
   connected = false
-  -- connecting = true
-  -- tmr.alarm(5, 3000, 0, function() connect() end)
+  connecting = true
+  -- tmr.alarm(5, 500, 0, function() 
+    connect() 
+  -- end)
 end
 
 local function onSent(c)
@@ -89,10 +91,18 @@ local function saveState(data)
 end
 
 connect = function()
+  if (wifi.sta.status() ~= wifi.STA_GOTIP) then
+    print('WIFI connecting')
+    if (wifi.sta.status() ~= wifi.STA_CONNECTING) then
+      print('reconnecting WIFI')
+      wifi.sta.connect()
+    end
+    return false
+  end
   if not connected then
     print('connecting')
     connecting = true
-    if (con ~= nil) then con:close() end
+    if (con ~= nil) then con:close() tmr.delay(500) end
     con = net.createConnection(net.TCP, 0)
     con:on('connection', onConnected)
     con:on('reconnection', onReconnected)
@@ -110,6 +120,7 @@ function jsonrpc.init(p, i, after)
   port = p
   after_call = after or function() end
   connect()
+  wifi.sta.eventMonReg(wifi.STA_GOTIP, function() connect() end)
   -- tmr.alarm(3, 3*60*1000, 1, function() jsonrpc.getLightState('*') end)
   return con
 end

@@ -28,17 +28,16 @@ function startTimer()
   tmr.alarm(MEASURE_TIMER, REFRESH, 1, measure)
 end
 
-tmr.alarm(0, 1000, 1, function()
-  if wifi.sta.status() == 5 then
-    tmr.stop(0)
-    print(wifi.sta.getip())
-    hcsr04.init(TRIG, ECHO, AVG)
-    jsonrpc.init(
-      PORT,
-      SERVER,
-      function()
-        startTimer()
-      end)
-    -- tmr.alarm(1, 1000, 0, start)
-  end
+wifi.sta.eventMonReg(wifi.STA_GOTIP, function()
+  wifi.sta.eventMonReg(wifi.STA_GOTIP, "unreg")
+  print(wifi.sta.getip())
+  hcsr04.init(TRIG, ECHO, AVG)
+  jsonrpc.init(
+    PORT,
+    SERVER,
+    function()
+      startTimer()
+    end)
 end)
+
+wifi.sta.eventMonStart()

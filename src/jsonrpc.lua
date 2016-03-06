@@ -58,30 +58,28 @@ local function onReceive(sck, c)
 end
 
 local function onReconnected()
-  print('reconnected')
+  if (DEBUG) then print('reconnected') end
   connected = true
   connecting = false
   getFromQueue()
 end
 
 local function onConnected()
-  print('connected')
+  if (DEBUG) then print('connected') end
   connected = true
   connecting = false
   getFromQueue()
 end
 
 local function onDisconnected()
-  print('disconnected')
+  if (DEBUG) then print('disconnected') end
   connected = false
   connecting = true
-  -- tmr.alarm(5, 500, 0, function() 
-    connect() 
-  -- end)
+  connect()
 end
 
 local function onSent(c)
-  -- print('sent')
+  if (DEBUG) then print('sent') end
 end
 
 local function saveState(data)
@@ -100,7 +98,7 @@ connect = function()
     return false
   end
   if not connected then
-    print('connecting')
+    if (DEBUG) then print('connecting') end
     connecting = true
     if (con ~= nil) then con:close() tmr.delay(500) end
     con = net.createConnection(net.TCP, 0)

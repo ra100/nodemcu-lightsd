@@ -39,16 +39,16 @@ end
 
 local function onReceive(sck, c)
   if DEBUG then print('received: ' .. c) end
-  getFromQueue()
-  data = cjson.decode(c)
+  local data = cjson.decode(c)
   if responses[data.id] == nil then
     if DEBUG then print('no callback') end
   else
     responses[data.id](data)
-    table.remove(responses, data.id)
   end
+  responses[data.id] = nil
+  data = nil
+  getFromQueue()
   collectgarbage()
-  print('heap4: ' .. node.heap())
 end
 
 local function onReconnected()
@@ -151,7 +151,10 @@ function jsonrpc.getLightState(light, callback)
 end
 
 -- turn the light on
-function jsonrpc.lightOn(light, callback)
+function jsonrpc.lightOn(light)
+  if (lights[light] ~= nil and lights[light].power) then
+    return true
+  end
   jsonrpc.send({
     ['method']='power_on',
     ['params']={light},
@@ -164,12 +167,14 @@ function jsonrpc.lightOn(light, callback)
     if data.result then
       lights[light].power = true
     end
-    if callback ~= nil then callback() end
   end)
 end
 
 -- turn the light off
-function jsonrpc.lightOff(light, callback)
+function jsonrpc.lightOff(light)
+  if (lights[light] ~= nil and not lights[light].power) then
+    return true
+  end
   jsonrpc.send({
     ['method']='power_off',
     ['params']={light},
@@ -179,17 +184,14 @@ function jsonrpc.lightOff(light, callback)
     if lights[light] ~= nil and data.result then
       lights[light].power = false
     end
-    if callback ~= nil then callback() end
   end)
 end
 
 -- lightsd code, value 0 - 100
-function jsonrpc.setBrightness(light, value, trans, callback)
-  if lights[light] == nil or not lights[light].power then
-    jsonrpc.getLightState(light, function()
-      jsonrpc.lightOn(light, function()
-        jsonrpc.setBrightness(light, value, trans, callback)
-      end)
+function jsonrpc.setBrightness(light, value, trans)
+  if (lights[light] == nil) then
+    jsonrpc.getLightState(light, function(data)
+      jsonrpc.setBrightness(light, value, trans)
     end)
     return false
   end
@@ -204,7 +206,22 @@ function jsonrpc.setBrightness(light, value, trans, callback)
     ['params']={light, hue, saturation, brightness, temperature, transition},
     ['id']=tmr.now(),
     ["jsonrpc"]="2.0"
-  }, callback)
+  })
+  if value > 0 then
+    jsonrpc.lightOn(light)
+  end
+end
+
+function jsonrpc.getPause()
+  if table.getn(responses) == 0 and queue == 0 then
+    return true
+  else
+    return false
+  end
+end
+
+function jsonrpc.getQueue()
+  return queue
 end
 
 return jsonrpc

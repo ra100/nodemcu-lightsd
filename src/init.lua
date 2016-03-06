@@ -1,11 +1,23 @@
-dofile('config.lua')
-dofile('wifi.lua')
+function compile_remove(f)
+  node.compile(f)
+  file.remove(f)
+end
 
-files = file.list()
+local files = {
+  'config.lua',
+  'wifi.lua',
+  'jsonrpc.lua',
+  'hcsr04.lua',
+  'control.lua',
+  'list.lua'
+}
 
-if (files['jsonrpc.lc'] == nil) then node.compile('jsonrpc.lua') end
-if (files['hcsr04.lc'] == nil) then node.compile('hcsr04.lua') end
-if (files['control.lc'] == nil) then node.compile('control.lua') end
-if (files['list.lc'] == nil) then node.compile('list.lua') end
+local filelist = file.list()
 
+for i,f in ipairs(files) do
+  if filelist[f] == nil then compile_remove(f) end
+end
+
+dofile('config.lc')
+dofile('wifi.lc')
 dofile('control.lc')

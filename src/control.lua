@@ -2,43 +2,25 @@ local jsonrpc = require 'jsonrpc'
 local hcsr04 = require 'hcsr04'
 local val = 0
 local prev = -1 -- previous distance value
-local p = 0
-
-function unpause()
-  p = p - 1
-end
-
-function pause()
-  p = p + 1
-end
 
 function measure()
-  if (p ~= 0) then
+  if (not jsonrpc.getPause()) then
     return false
   end
-  pause()
   local dist = hcsr04.measure()
-  unpause()
   if (math.abs(dist - prev) < 0.1) then
     if DEBUG then print(dist) end
     local d = (dist + prev) / 2
     if d > MINDIST and d < (MAXRANGE + MAXDIST) then
-      pause()
-      print("heap1: " .. node.heap())
       if d > MAXDIST then
         val = 100
       else
         val = ((d - MINDIST) / RANGE) * 100
       end
-      jsonrpc.setBrightness(LIGHT, val, FADETIME, unpause)
+      jsonrpc.setBrightness(LIGHT, val, FADETIME)
       return true
     elseif d < MINDIST and d > 0 then
-      print("heap2: " .. node.heap())
-      pause()
-      pause()
-      jsonrpc.setBrightness(LIGHT, 0, FADETIME, unpause)
-      jsonrpc.lightOff(LIGHT, unpause)
-      print("heap3: " .. node.heap())
+      jsonrpc.lightOff(LIGHT)
       return true
     end
   end

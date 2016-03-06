@@ -15,7 +15,9 @@ local files = {
 local filelist = file.list()
 
 for i,f in ipairs(files) do
-  if filelist[f] == nil then compile_remove(f) end
+  if (filelist[f]) then
+    compile_remove(f)
+  end
 end
 
 dofile('config.lc')

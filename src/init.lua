@@ -16,6 +16,7 @@ local filelist = file.list()
 
 for i,f in ipairs(files) do
   if (filelist[f]) then
+    print('compiling ' .. f)
     compile_remove(f)
   end
 end

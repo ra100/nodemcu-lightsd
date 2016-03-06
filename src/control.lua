@@ -1,43 +1,60 @@
-jsonrpc = require 'jsonrpc'
+local jsonrpc = require 'jsonrpc'
 local hcsr04 = require 'hcsr04'
 local val = 0
+local prev = -1 -- previous distance value
+local p = 0
+
+function unpause()
+  p = p - 1
+end
+
+function pause()
+  p = p + 1
+end
 
 function measure()
-  local dist = hcsr04.measure_avg()
-  if dist > MINDIST and dist < MAXRANGE + MAXDIST then
-    print(dist)
-    tmr.stop(MEASURE_TIMER)
-    if dist > MAXDIST then
-      val = 100
-    else
-      val = ((dist - MINDIST) / RANGE) * 100
+  if (p ~= 0) then
+    return false
+  end
+  pause()
+  local dist = hcsr04.measure()
+  unpause()
+  if (math.abs(dist - prev) < 0.1) then
+    if DEBUG then print(dist) end
+    local d = (dist + prev) / 2
+    if d > MINDIST and d < (MAXRANGE + MAXDIST) then
+      pause()
+      print("heap1: " .. node.heap())
+      if d > MAXDIST then
+        val = 100
+      else
+        val = ((d - MINDIST) / RANGE) * 100
+      end
+      jsonrpc.setBrightness(LIGHT, val, FADETIME, unpause)
+      return true
+    elseif d < MINDIST and d > 0 then
+      print("heap2: " .. node.heap())
+      pause()
+      pause()
+      jsonrpc.setBrightness(LIGHT, 0, FADETIME, unpause)
+      jsonrpc.lightOff(LIGHT, unpause)
+      print("heap3: " .. node.heap())
+      return true
     end
-    jsonrpc.setBrightness(LIGHT, val, 1000)
-    return true
   end
-  if dist < MINDIST and dist ~= -1 then
-    tmr.stop(MEASURE_TIMER)
-    jsonrpc.setBrightness(LIGHT, 0, 1000)
-    jsonrpc.lightOff(LIGHT)
-    return true
-  end
+  prev = dist
 end
 
 function startTimer()
-  tmr.stop(MEASURE_TIMER)
+  if DEBUG then print("Timer started") end
   tmr.alarm(MEASURE_TIMER, REFRESH, 1, measure)
 end
 
 wifi.sta.eventMonReg(wifi.STA_GOTIP, function()
   wifi.sta.eventMonReg(wifi.STA_GOTIP, "unreg")
-  print(wifi.sta.getip())
+  if DEBUG then print(wifi.sta.getip()) end
   hcsr04.init(TRIG, ECHO, AVG)
-  jsonrpc.init(
-    PORT,
-    SERVER,
-    function()
-      startTimer()
-    end)
+  jsonrpc.init(PORT, SERVER, startTimer)
 end)
 
 wifi.sta.eventMonReg(wifi.STA_IDLE, function() wifi.sta.connect() end)

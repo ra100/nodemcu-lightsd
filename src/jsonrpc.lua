@@ -11,7 +11,7 @@ local requests = List.new()
 local responses = {}
 local queue = 0
 local lights = {}
-local after_call = nil
+local func_on_con = nil
 
 local connect
 
@@ -30,7 +30,6 @@ local function getFromQueue()
   local r = List.popleft(requests)
   if r == nil then
     queue = 0
-    after_call()
   else
     queue = queue + 1
     responses[r.request.id] = r.callback
@@ -38,48 +37,47 @@ local function getFromQueue()
   end
 end
 
-local function printData(data)
-  -- print('printing data')
-  -- print(cjson.encode(data))
-end
-
 local function onReceive(sck, c)
-  -- print('received: ' .. c)
+  if DEBUG then print('received: ' .. c) end
   getFromQueue()
   data = cjson.decode(c)
   if responses[data.id] == nil then
-    -- print('no callback')
+    if DEBUG then print('no callback') end
   else
     responses[data.id](data)
     table.remove(responses, data.id)
   end
-  after_call()
-  -- collectgarbage()
+  collectgarbage()
+  print('heap4: ' .. node.heap())
 end
 
 local function onReconnected()
-  if (DEBUG) then print('reconnected') end
+  print('reconnected')
   connected = true
   connecting = false
   getFromQueue()
 end
 
 local function onConnected()
-  if (DEBUG) then print('connected') end
+  print('connected')
   connected = true
   connecting = false
+  if (func_on_con ~= nil) then
+    func_on_con()
+    func_on_con = nil
+  end
   getFromQueue()
 end
 
 local function onDisconnected()
-  if (DEBUG) then print('disconnected') end
+  print('disconnected')
   connected = false
   connecting = true
   connect()
 end
 
 local function onSent(c)
-  if (DEBUG) then print('sent') end
+  if DEBUG then print('sent') end
 end
 
 local function saveState(data)
@@ -88,7 +86,7 @@ local function saveState(data)
   end
 end
 
-connect = function()
+connect = function(callback)
   if (wifi.sta.status() ~= wifi.STA_GOTIP) then
     -- print('WIFI connecting')
     if (wifi.sta.status() ~= wifi.STA_CONNECTING) then
@@ -98,7 +96,7 @@ connect = function()
     return false
   end
   if not connected then
-    if (DEBUG) then print('connecting') end
+    print('connecting')
     connecting = true
     if (con ~= nil) then con:close() tmr.delay(500) end
     con = net.createConnection(net.TCP, 0)
@@ -113,14 +111,18 @@ connect = function()
   end
 end
 
-function jsonrpc.init(p, i, after)
+function jsonrpc.init(p, i, callback)
   ip = i
   port = p
-  after_call = after or function() end
-  connect()
-  wifi.sta.eventMonReg(wifi.STA_GOTIP, function() connect() end)
+  func_on_con = function() jsonrpc.getLightState('*', callback) end
+  if (wifi.sta.status() == wifi.STA_GOTIP) then
+    if DEBUG then print("GOT IP") end
+    connect()
+  else
+    if DEBUG then print("Waiting for IP") end
+    wifi.sta.eventMonReg(wifi.STA_GOTIP, connect)
+  end
   tmr.alarm(3, 3*60*1000, 1, function() jsonrpc.getLightState('*') end)
-  return con
 end
 
 function jsonrpc.getCon()
@@ -162,12 +164,12 @@ function jsonrpc.lightOn(light, callback)
     if data.result then
       lights[light].power = true
     end
-    callback()
+    if callback ~= nil then callback() end
   end)
 end
 
 -- turn the light off
-function jsonrpc.lightOff(light)
+function jsonrpc.lightOff(light, callback)
   jsonrpc.send({
     ['method']='power_off',
     ['params']={light},
@@ -177,15 +179,16 @@ function jsonrpc.lightOff(light)
     if lights[light] ~= nil and data.result then
       lights[light].power = false
     end
+    if callback ~= nil then callback() end
   end)
 end
 
 -- lightsd code, value 0 - 100
-function jsonrpc.setBrightness(light, value, trans)
+function jsonrpc.setBrightness(light, value, trans, callback)
   if lights[light] == nil or not lights[light].power then
     jsonrpc.getLightState(light, function()
       jsonrpc.lightOn(light, function()
-        jsonrpc.setBrightness(light, value, trans)
+        jsonrpc.setBrightness(light, value, trans, callback)
       end)
     end)
     return false
@@ -201,7 +204,7 @@ function jsonrpc.setBrightness(light, value, trans)
     ['params']={light, hue, saturation, brightness, temperature, transition},
     ['id']=tmr.now(),
     ["jsonrpc"]="2.0"
-  })
+  }, callback)
 end
 
 return jsonrpc

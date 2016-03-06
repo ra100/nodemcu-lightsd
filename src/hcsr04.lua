@@ -40,13 +40,13 @@ end
 function hcsr04.measure()
 	gpio.trig(self.echo, "up", hcsr04.echo_cb)
 	gpio.write(self.trig, gpio.HIGH)
-	tmr.delay(100)
+	tmr.delay(10)
 	gpio.write(self.trig, gpio.LOW)
-	tmr.delay(100000)
+	tmr.delay(60000)
 	if (self.time_end - self.time_start) < 0 then
 		return -1
 	end
-	return (self.time_end - self.time_start) / 5800
+	return (self.time_end - self.time_start) / 5820
 end
 
 function hcsr04.measure_avg()

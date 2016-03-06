@@ -67,13 +67,17 @@ local function onConnected()
     func_on_con = nil
   end
   getFromQueue()
+  collectgarbage()
 end
 
 local function onDisconnected()
   print('disconnected')
   connected = false
-  connecting = true
-  connect()
+  if not connecting then
+    connecting = true
+    if (con ~= nil) then con:close() end
+    tmr.alarm(3, 1000, 0, connect)
+  end
 end
 
 local function onSent(c)
@@ -92,6 +96,7 @@ connect = function(callback)
     if (wifi.sta.status() ~= wifi.STA_CONNECTING) then
       -- print('reconnecting WIFI')
       wifi.sta.connect()
+      wifi.sta.eventMonReg(wifi.STA_GOTIP, connect)
     end
     return false
   end

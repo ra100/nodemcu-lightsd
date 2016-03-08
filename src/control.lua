@@ -1,4 +1,4 @@
-local jsonrpc = require 'jsonrpc'
+jsonrpc = require 'jsonrpc'
 local hcsr04 = require 'hcsr04'
 local val = 0
 local prev = -1 -- previous distance value
@@ -36,7 +36,7 @@ wifi.sta.eventMonReg(wifi.STA_GOTIP, function()
   wifi.sta.eventMonReg(wifi.STA_GOTIP, "unreg")
   if DEBUG then print(wifi.sta.getip()) end
   hcsr04.init(TRIG, ECHO, AVG)
-  jsonrpc.init(PORT, SERVER, startTimer)
+  jsonrpc.init(PORT, SERVER, LIGHT, startTimer)
 end)
 
 wifi.sta.eventMonReg(wifi.STA_IDLE, function() wifi.sta.connect() end)

@@ -86,7 +86,14 @@ end
 
 local function saveState(data)
   for i, light in ipairs(data.result) do
-    lights[light.label] = light
+    lights[light.label] = {
+      ['power'] = light.power,
+      ['hsbk'] = light.hsbk
+    }
+  end
+  collectgarbage()
+  if (node.heap() < 4000) then
+    node.restart()
   end
 end
 
@@ -116,10 +123,11 @@ connect = function(callback)
   end
 end
 
-function jsonrpc.init(p, i, callback)
+function jsonrpc.init(p, i, l, callback)
   ip = i
   port = p
-  func_on_con = function() jsonrpc.getLightState('*', callback) end
+  if l == nil then l = '*' end
+  func_on_con = function() jsonrpc.getLightState(l, callback) end
   if (wifi.sta.status() == wifi.STA_GOTIP) then
     if DEBUG then print("GOT IP") end
     connect()
@@ -127,7 +135,7 @@ function jsonrpc.init(p, i, callback)
     if DEBUG then print("Waiting for IP") end
     wifi.sta.eventMonReg(wifi.STA_GOTIP, connect)
   end
-  tmr.alarm(3, 3*60*1000, 1, function() jsonrpc.getLightState('*') end)
+  tmr.alarm(3, 3*60*1000, 1, function() jsonrpc.getLightState(l) end)
 end
 
 function jsonrpc.getCon()

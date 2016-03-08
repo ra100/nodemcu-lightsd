@@ -40,9 +40,9 @@ end
 function hcsr04.measure()
 	gpio.trig(self.echo, "up", hcsr04.echo_cb)
 	gpio.write(self.trig, gpio.HIGH)
-	tmr.delay(100)
+	tmr.delay(10)
 	gpio.write(self.trig, gpio.LOW)
-	tmr.delay(100000)
+	tmr.delay(70000)
 	if (self.time_end - self.time_start) < 0 then
 		return -1
 	end

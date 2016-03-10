@@ -16,6 +16,13 @@ local func_on_con = nil
 local connect
 
 local function sendRequest(request)
+  collectgarbage()
+  if (node.heap() < 4000) then
+    file.open('log.log', 'a+')
+    file.writeline('time: '.. tmr.now() .. ' heap: ' .. node.heap())
+    file.close()
+    node.restart()
+  end
   local jsonRequest = cjson.encode(request)
   -- print('sendig: ' .. jsonRequest)
   con:send(jsonRequest)
@@ -90,10 +97,6 @@ local function saveState(data)
       ['power'] = light.power,
       ['hsbk'] = light.hsbk
     }
-  end
-  collectgarbage()
-  if (node.heap() < 4000) then
-    node.restart()
   end
 end
 

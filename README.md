@@ -1,10 +1,11 @@
 # NodeMCU LIFX control
-Control LIFX light brightness with NodeMCU, hc-sr04 range sensor and lightsd server.
+Control LIFX light brightness with NodeMCU,
+hc-sr04 range sensor and lightsd server.
 
 ## Requirements
 - LIFX bulbs
 - NodeMCU module
-  - firmware 1.5.1 - float with modules: node,file,gpio,wifi,net,tmr,cjson - [http://nodemcu-build.com/](http://nodemcu-build.com/)
+  - firmware 1.4.0 - float, with modules: node, file, gpio, wifi, net, tmr, cjson - [http://nodemcu-build.com/](http://nodemcu-build.com/)
 
 - HC-SR04 ultrasonic sensor
 - lightsd server - [https://github.com/lopter/lightsd](https://github.com/lopter/lightsd)
@@ -21,18 +22,19 @@ Control LIFX light brightness with NodeMCU, hc-sr04 range sensor and lightsd ser
 ## Usage
 - Connect HC-SR04 to NodeMCU. Default pins are: TRIG - 5, ECHO - 6, Gnd - GND, VCC - VU (you need 5V).
 - Edit configuration in `config.lua.default` and rename it to `config.lua`. Configuration options:
-  - `SSID` - network SSID
-  - `PASSWORD` - network password
-  - `LIGHT` - name of light you want to control
-  - `MINDIST` - distance below which light should turn off [in meters]
-  - `MAXDIST` - distance where light brightness should turn to 100% [in meters]
-  - `MAXRANGE` - range above MAXDIST where sensor should detect movement (and set brightness to 100%) [in meters]
-  - `SERVER` - name or IP of lightsd server
-  - `PORT` - lightsd port
-  - `TRIG` - pin number where you connect `trig` wire from hcsr04
-  - `ECHO` - pin number where you connect `echo` wire from hcsr04
-  - `AVG` - from how many measurements should hcsr04 module average distance
-  - `REFRESH` - how often should script check for distance
+  - `SSID` [required] - network SSID
+  - `PASSWORD` [required] - network password
+  - `LIGHT` [required] - name of light you want to control
+  - `MINDIST` [required] - distance below which light should turn off [in meters]
+  - `MAXDIST` [required] - distance where light brightness should turn to 100% [in meters]
+  - `MAXRANGE` [required] - range above MAXDIST where sensor should detect movement (and set brightness to 100%) [in meters]
+  - `SERVER` [required] - name or IP of lightsd server
+  - `IP` [optional] - IP address if you don't want to let DHCP assign address, makes reconnect much faster
+  - `GATEWAYIP` [optinoal] - if you set IP, set also gateway
+  - `PORT` [required] - lightsd port
+  - `TRIG` [required] - pin number where you connect `trig` wire from hcsr04
+  - `ECHO` [required] - pin number where you connect `echo` wire from hcsr04
+  - `REFRESH` [required] - how often should script check for distance
 
 - Upload files to NodeMCU.
 - Restart.
@@ -43,6 +45,7 @@ Init script connect to wifi and checks if connection is established. Then create
 
 ## TODO
 
+- [x] optimize memory usage
 - [ ] light tags/groups support
 - [ ] hsbk support in jsonrpc
 

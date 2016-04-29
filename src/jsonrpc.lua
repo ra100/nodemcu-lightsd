@@ -17,7 +17,7 @@ local connect
 
 local function sendRequest(request)
   collectgarbage()
-  if (node.heap() < 4000) then
+  if (node.heap() < 8000) then
     file.open('log.log', 'a+')
     file.writeline('time: '.. tmr.now() .. ' heap: ' .. node.heap())
     file.close()

@@ -1,5 +1,5 @@
 ip = wifi.sta.getip()
-print(ip)
+print('Found IP:' .. ip)
 if ip == nil and IP == '' then
   wifi.setmode(wifi.STATION)
   wifi.setphymode(wifi.PHYMODE_N)

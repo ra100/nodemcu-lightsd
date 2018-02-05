@@ -26,19 +26,20 @@ function hcsr04.init(pin_trig, pin_echo, average)
 	gpio.mode(self.trig, gpio.OUTPUT)
 	gpio.mode(self.echo, gpio.INT)
 	self.average = average or 3
+	if DEBUG then print('hcsr04 configured') end
 end
 
 function hcsr04.echo_cb(level)
 	if level == 1 then
 		self.time_start = tmr.now()
-		gpio.trig(self.echo, "down")
+		gpio.trig(self.echo, 'down')
 	else
 		self.time_end = tmr.now()
 	end
 end
 
 function hcsr04.measure()
-	gpio.trig(self.echo, "up", hcsr04.echo_cb)
+	gpio.trig(self.echo, 'up', hcsr04.echo_cb)
 	gpio.write(self.trig, gpio.HIGH)
 	tmr.delay(10)
 	gpio.write(self.trig, gpio.LOW)

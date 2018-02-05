@@ -24,7 +24,7 @@ local function sendRequest(request)
     node.restart()
   end
   local jsonRequest = cjson.encode(request)
-  -- print('sendig: ' .. jsonRequest)
+  print('sendig: ' .. jsonRequest)
   con:send(jsonRequest)
 end
 
@@ -66,9 +66,10 @@ local function onReconnected()
 end
 
 local function onConnected()
-  print('connected')
+  if DEBUG then print('connected') end
   connected = true
   connecting = false
+  tmr.delay(500)
   if (func_on_con ~= nil) then
     func_on_con()
     func_on_con = nil
@@ -78,7 +79,7 @@ local function onConnected()
 end
 
 local function onDisconnected()
-  print('disconnected')
+  if DEBUG then print('disconnected') end
   connected = false
   if not connecting then
     connecting = true
@@ -102,16 +103,16 @@ end
 
 connect = function(callback)
   if (wifi.sta.status() ~= wifi.STA_GOTIP) then
-    -- print('WIFI connecting')
+    print('WIFI connecting')
     if (wifi.sta.status() ~= wifi.STA_CONNECTING) then
-      -- print('reconnecting WIFI')
+      print('reconnecting WIFI')
       wifi.sta.connect()
       wifi.sta.eventMonReg(wifi.STA_GOTIP, connect)
     end
     return false
   end
   if not connected then
-    print('connecting')
+    if DEBUG then print('connecting') end
     connecting = true
     if (con ~= nil) then con:close() tmr.delay(500) end
     con = net.createConnection(net.TCP, 0)
@@ -132,10 +133,10 @@ function jsonrpc.init(p, i, l, callback)
   if l == nil then l = '*' end
   func_on_con = function() jsonrpc.getLightState(l, callback) end
   if (wifi.sta.status() == wifi.STA_GOTIP) then
-    if DEBUG then print("GOT IP") end
+    if DEBUG then print('GOT IP') end
     connect()
   else
-    if DEBUG then print("Waiting for IP") end
+    if DEBUG then print('Waiting for IP') end
     wifi.sta.eventMonReg(wifi.STA_GOTIP, connect)
   end
   tmr.alarm(3, 3*60*1000, 1, function() jsonrpc.getLightState(l) end)
@@ -158,7 +159,7 @@ function jsonrpc.getLightState(light, callback)
     ['method']='get_light_state',
     ['params']={light},
     ['id']=tmr.now(),
-    ["jsonrpc"]="2.0"
+    ['jsonrpc']='2.0'
   },
   function(data)
     saveState(data)
@@ -175,7 +176,7 @@ function jsonrpc.lightOn(light)
     ['method']='power_on',
     ['params']={light},
     ['id']=tmr.now(),
-    ["jsonrpc"]="2.0"
+    ['jsonrpc']='2.0'
   }, function(data)
     if lights[light] == nil then
       lights[light] = {}
@@ -195,7 +196,7 @@ function jsonrpc.lightOff(light)
     ['method']='power_off',
     ['params']={light},
     ['id']=tmr.now(),
-    ["jsonrpc"]="2.0"
+    ['jsonrpc']='2.0'
   }, function(data)
     if lights[light] ~= nil and data.result then
       lights[light].power = false
@@ -221,7 +222,7 @@ function jsonrpc.setBrightness(light, value, trans)
     ['method']='set_light_from_hsbk',
     ['params']={light, hue, saturation, brightness, temperature, transition},
     ['id']=tmr.now(),
-    ["jsonrpc"]="2.0"
+    ['jsonrpc']='2.0'
   })
   if value > 0 then
     jsonrpc.lightOn(light)

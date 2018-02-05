@@ -28,12 +28,12 @@ function measure()
 end
 
 function startTimer()
-  if DEBUG then print("Timer started") end
+  if DEBUG then print('Timer started') end
   tmr.alarm(MEASURE_TIMER, REFRESH, 1, measure)
 end
 
 wifi.sta.eventMonReg(wifi.STA_GOTIP, function()
-  wifi.sta.eventMonReg(wifi.STA_GOTIP, "unreg")
+  wifi.sta.eventMonReg(wifi.STA_GOTIP, 'unreg')
   if DEBUG then print(wifi.sta.getip()) end
   hcsr04.init(TRIG, ECHO, AVG)
   jsonrpc.init(PORT, SERVER, LIGHT, startTimer)

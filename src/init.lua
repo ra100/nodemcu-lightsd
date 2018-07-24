@@ -6,7 +6,7 @@ end
 local files = {
   'config.lua',
   'wifi.lua',
-  'jsonrpc.lua',
+  'lifx.lua',
   'hcsr04.lua',
   'control.lua',
   'list.lua'

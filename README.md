@@ -1,22 +1,23 @@
 # NodeMCU LIFX control
-Control LIFX light brightness with NodeMCU,
-hc-sr04 range sensor and lightsd server.
+> Control LIFX light brightness with NodeMCU,
+> hc-sr04 range sensor and lightsd server.
+
+This is clone of [https://github.com/ra100/nodemcu-lightsd](https://github.com/ra100/nodemcu-lightsd) with lightsd switched for lifx rest server.
 
 ## Requirements
 - LIFX bulbs
 - NodeMCU module
-  - firmware 1.4.0 - float, with modules: node, file, gpio, wifi, net, tmr, cjson - [http://nodemcu-build.com/](http://nodemcu-build.com/)
+  - firmware >= 1.5.0 - float, with modules: node, file, gpio, wifi, net, http, tmr - [http://nodemcu-build.com/](http://nodemcu-build.com/)
 
 - HC-SR04 ultrasonic sensor
-- lightsd server - [https://github.com/lopter/lightsd](https://github.com/lopter/lightsd)
+- LIFX REST server - [https://github.com/ra100/lifx-rest-web](https://github.com/ra100/lifx-rest-web)
 
 ## Contents
 - `config.lua.default` - default configuration, rename to `config.lua` and change settings
-- `control.lua` - main code to bridge sensor and jsonrpc
+- `control.lua` - main code to bridge sensor and server
 - `hcsr04.lua` - modified lua module from [https://github.com/sza2/node_hcsr04](https://github.com/sza2/node_hcsr04)
 - `init.lua` - init script to compile .lua to .lc and start `wifi.lua` and `control.lc`
-- `jsonrpc.lua` - module for communication with `lightsd` server via jsonrpc
-- `list.lua` - list module
+- `lifx.lua` - module for communication with `lifx-rest` server via http calls
 - `wifi.lua` - connects to WiFi network configured in `config.lua`
 
 ## Usage
@@ -28,10 +29,9 @@ hc-sr04 range sensor and lightsd server.
   - `MINDIST` [required] - distance below which light should turn off [in meters]
   - `MAXDIST` [required] - distance where light brightness should turn to 100% [in meters]
   - `MAXRANGE` [required] - range above MAXDIST where sensor should detect movement (and set brightness to 100%) [in meters]
-  - `SERVER` [required] - name or IP of lightsd server
+  - `BASEURL` [required] - full url where to find API `http://10.0.0.5:3000/api/v1`
   - `IP` [optional] - IP address if you don't want to let DHCP assign address, makes reconnect much faster
   - `GATEWAYIP` [optinoal] - if you set IP, set also gateway
-  - `PORT` [required] - lightsd port
   - `TRIG` [required] - pin number where you connect `trig` wire from hcsr04
   - `ECHO` [required] - pin number where you connect `echo` wire from hcsr04
   - `REFRESH` [required] - how often should script check for distance
@@ -47,7 +47,6 @@ Init script connect to wifi and checks if connection is established. Then create
 
 - [x] optimize memory usage
 - [ ] light tags/groups support
-- [ ] hsbk support in jsonrpc
 
 ## License
 GNU GPLv3

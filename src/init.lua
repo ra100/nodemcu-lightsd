@@ -1,26 +1,25 @@
-function compile_remove(f)
-  node.compile(f)
-  file.remove(f)
-end
+dofile('config.lua')
 
-local files = {
-  'config.lua',
-  'wifi.lua',
-  'lifx.lua',
-  'hcsr04.lua',
-  'control.lua',
-  'list.lua'
-}
+-- function compile_remove(f)
+--   node.compile(f)
+--   file.remove(f)
+-- end
 
-local filelist = file.list()
+-- local files = {
+--   'wifi.lua',
+--   'lifx.lua',
+--   'hcsr04.lua',
+--   'control.lua'
+-- }
 
-for i,f in ipairs(files) do
-  if (filelist[f]) then
-    print('compiling ' .. f)
-    compile_remove(f)
-  end
-end
+-- local filelist = file.list()
 
-dofile('config.lc')
-dofile('wifi.lc')
-dofile('control.lc')
+-- for i,f in ipairs(files) do
+--   if (filelist[f]) then
+--     print('compiling ' .. f)
+--     compile_remove(f)
+--   end
+-- end
+
+dofile('control.lua')
+dofile('wifi.lua')

@@ -1,41 +1,41 @@
-lifx = require 'lifx'
+local lifx = require 'lifx'
 local hcsr04 = require 'hcsr04'
 local val = 0
 local prev = -1 -- previous distance value
 
-function measure()
-  local dist = hcsr04.measure()
-  if (math.abs(dist - prev) < 0.1) then
-    if DEBUG then print(dist) end
-    local d = (dist + prev) / 2
+function measure_callback(dist)
+  if DEBUG then print('measure ' .. dist) end
+  if (math.abs(dist - prev) < 0.2) then
+    if DEBUG then print('distance ' .. dist) end
+    local d = (prev + dist) / 2
     if d > MINDIST and d < (MAXRANGE + MAXDIST) then
       if d > MAXDIST then
         val = 100
       else
         val = ((d - MINDIST) / RANGE) * 100
       end
+      if DEBUG then print('Brightness ' .. val) end
       lifx.setBrightness(val, FADETIME, LIGHT)
-      return true
     elseif d < MINDIST and d > 0 then
+      if DEBUG then print('Light Off') end
       lifx.lightOff(LIGHT)
-      return true
     end
   end
   prev = dist
+  if node.heap() < 4000 then node.restart() end
+  tmr.delay(10)
+  startTimer()
 end
 
 function startTimer()
   if DEBUG then print('Timer started') end
-  tmr.alarm(MEASURE_TIMER, REFRESH, 1, measure)
+  hcsr04(TRIG, ECHO, AVG, MEASURE_TIMER, measure_callback)
 end
 
-wifi.sta.eventMonReg(wifi.STA_GOTIP, function()
-  wifi.sta.eventMonReg(wifi.STA_GOTIP, 'unreg')
+wifi.eventmon.register(wifi.eventmon.STA_GOT_IP, function()
+  wifi.eventmon.register(wifi.eventmon.STA_GOT_IP, 'unreg')
   if DEBUG then print(wifi.sta.getip()) end
-  hcsr04.init(TRIG, ECHO, AVG)
   lifx.init(BASEURL, LIGHT, startTimer)
 end)
 
-wifi.sta.eventMonReg(wifi.STA_IDLE, function() wifi.sta.connect() end)
-
-wifi.sta.eventMonStart()
+wifi.eventmon.register(wifi.eventmon.STA_DISCONNECTED, wifi.sta.connect)

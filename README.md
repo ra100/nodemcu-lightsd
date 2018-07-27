@@ -7,7 +7,7 @@ This is clone of [https://github.com/ra100/nodemcu-lightsd](https://github.com/r
 ## Requirements
 - LIFX bulbs
 - NodeMCU module
-  - firmware >= 1.5.0 - float, with modules: node, file, gpio, wifi, net, http, tmr - [http://nodemcu-build.com/](http://nodemcu-build.com/)
+  - firmware = 1.5.4 - float, with modules: node, file, gpio, wifi, net, http, tmr - [http://nodemcu-build.com/](http://nodemcu-build.com/)
 
 - HC-SR04 ultrasonic sensor
 - LIFX REST server - [https://github.com/ra100/lifx-rest-web](https://github.com/ra100/lifx-rest-web)

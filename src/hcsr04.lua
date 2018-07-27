@@ -1,69 +1,57 @@
---
---    Copyright (C) 2014 Tamas Szabo <sza2trash@gmail.com>
---
---    This program is free software: you can redistribute it and/or modify
---    it under the terms of the GNU General Public License as published by
---    the Free Software Foundation, either version 3 of the License, or
---    (at your option) any later version.
---
---    This program is distributed in the hope that it will be useful,
---    but WITHOUT ANY WARRANTY; without even the implied warranty of
---    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
---    GNU General Public License for more details.
---
---    You should have received a copy of the GNU General Public License
---    along with this program.  If not, see <http://www.gnu.org/licenses/>.
---
+-- source https://www.esp8266.com/viewtopic.php?f=23&t=9341&start=8
 
-local hcsr04 = {}
-local self = {}
+local time_start, time_end, trigger, echo = 0, 0
+local sample_count, timer_id
 
-function hcsr04.init(pin_trig, pin_echo, average)
-	self.time_start = 0
-	self.time_end = 0
-	self.trig = pin_trig or 4
-	self.echo = pin_echo or 3
-	gpio.mode(self.trig, gpio.OUTPUT)
-	gpio.mode(self.echo, gpio.INT)
-	self.average = average or 3
-	if DEBUG then print('hcsr04 configured') end
+return function(trig_pin, echo_pin, sample_cnt, timer_id, report_cb)
+  trigger, echo = trig_pin or 7, echo_pin or 6
+  sample_count, timer_id = (sample_cnt + 1) or 4, timer_id or 1
+
+  local total, i, result = 0, 0, {}
+
+  local function echo_cb(level)
+    if level == 1 and result[i] == 0 then
+      result[i] = -tmr.now()
+      gpio.trig(echo, "down")
+    elseif level == 0 and result[i] < 0 then
+      result[i] = tmr.now() + result[i];
+      gpio.trig(echo, "none")
+    else
+      gpio.trig(echo, "none") -- anything else turn off interrupts and restart at next sample
+      if DEBUG then print("DEBUG INT off") end
+    end
+  end
+
+  local function measure()
+    if i > 0 then -- process last sample
+      if result[i] < 0 then
+        result[i] = 0
+        i = i - 1
+        return -- skip a beat to allow the sonar to settle down
+      else
+        total = total + result[i];
+      end
+      if i == sample_count then
+        tmr.unregister(timer_id)
+        if DEBUG then
+          for j = 1, sample_count do print(("Sample %u is %u"):format(j,result[j])) end
+        end
+        total = total - result[0] -- substract sample one because it is usually off...
+        return report_cb(total / (5820 * (sample_count - 1)))
+      end
+    end
+
+    gpio.mode(echo, gpio.INT)
+    gpio.trig(echo, "up", echo_cb)
+    gpio.write(trigger, gpio.HIGH)
+    tmr.delay(20)
+    gpio.write(trigger, gpio.LOW)
+    i = i + 1
+  end
+
+  for j = 0, sample_count do result[j] = 0 end -- pre-allocate result array
+
+  gpio.mode(trigger, gpio.OUTPUT)
+  tmr.alarm(timer_id, 60, tmr.ALARM_AUTO, measure)
+  measure()
 end
-
-function hcsr04.echo_cb(level)
-	if level == 1 then
-		self.time_start = tmr.now()
-		gpio.trig(self.echo, 'down')
-	else
-		self.time_end = tmr.now()
-	end
-end
-
-function hcsr04.measure()
-	gpio.trig(self.echo, 'up', hcsr04.echo_cb)
-	gpio.write(self.trig, gpio.HIGH)
-	tmr.delay(10)
-	gpio.write(self.trig, gpio.LOW)
-	tmr.delay(70000)
-	if (self.time_end - self.time_start) < 0 then
-		return -1
-	end
-	return (self.time_end - self.time_start) / 5820
-end
-
-function hcsr04.measure_avg()
-	if hcsr04.measure() < 0 then  -- drop the first sample
-		return -1 -- if the first sample is invalid, return -1
-	end
-	avg = 0
-	for cnt = 1, self.average do
-		distance = hcsr04.measure()
-		if distance < 0 then
-			return -1 -- return -1 if any of the meas fails
-		end
-		avg = avg + distance
-		tmr.delay(30000)
-	end
-	return avg / self.average
-end
-
-return hcsr04

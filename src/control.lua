@@ -24,12 +24,11 @@ function measure_callback(dist)
   prev = dist
   if node.heap() < 4000 then node.restart() end
   tmr.delay(10)
-  startTimer()
 end
 
 function startTimer()
   if DEBUG then print('Timer started') end
-  hcsr04(TRIG, ECHO, AVG, MEASURE_TIMER, measure_callback)
+  tmr.alarm(3, REFRESH, tmr.ALARM_AUTO, function() hcsr04(TRIG, ECHO, AVG, MEASURE_TIMER, measure_callback); end)
 end
 
 wifi.eventmon.register(wifi.eventmon.STA_GOT_IP, function()

@@ -7,15 +7,17 @@ local defaultDuration = 200
 
 local function requestCallback(code, data)
   sending = false
-  if (code < 0) then
-    print("HTTP request failed")
-  else
-    print(code, data)
+  if DEBUG then
+    if (code < 0) then
+      print("HTTP request failed")
+    else
+      print(code, data)
+    end
   end
 end
 
 local function sendBrightness(brightness, dur, l)
-  if sending then 
+  if sending then
     if DEBUG then print('sending in progress') end
     return nil
   end
@@ -30,7 +32,7 @@ local function sendBrightness(brightness, dur, l)
 end
 
 local function sendPower(power, dur, l)
-  if sending then 
+  if sending then
     if DEBUG then print('sending in progress') end
     return nil
   end
@@ -45,9 +47,11 @@ local function sendPower(power, dur, l)
     requestCallback)
 end
 
-function lifx.init(url, l, callback)
+function lifx.init(url, l, callback, timer_id)
   baseurl = url
   light = l
+  local tid = timer_id or 4
+  tmr.alarm(tid, 1000, tmr.ALARM_AUTO, function() sending = false; end)
   callback()
 end
 
